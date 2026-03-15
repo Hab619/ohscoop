@@ -163,6 +163,7 @@
             var a      = props.attributes;
             var setA   = props.setAttributes;
             var accent = a.accentColor || '#7c3aed';
+            var isPro  = typeof ohscoopData !== 'undefined' && ohscoopData.isPro;
 
             var blockProps = useBlockProps({ className: 'ohscoop-editor-wrap' });
 
@@ -262,10 +263,15 @@
 
                     // ── Rating
                     el( PanelBody, { title:'⭐ Star Rating', initialOpen:false },
-                        el( ToggleControl, { label:'Enable star rating', checked:a.ratingEnabled, onChange:function(v){setA({ratingEnabled:v});} }),
-                        el( 'p', { style:{fontSize:12,color:'#666'} }, 'Ratings update via AJAX when visitors rate. You can manually set an initial value below.' ),
-                        el( TextControl, { label:'Rating value (0-5)', value:String(a.ratingValue), onChange:function(v){setA({ratingValue:parseFloat(v)||0});} }),
-                        el( TextControl, { label:'Rating count',       value:String(a.ratingCount), onChange:function(v){setA({ratingCount:parseInt(v)||0});} }),
+                        isPro ? el( Fragment, null, 
+                            el( ToggleControl, { label:'Enable star rating', checked:a.ratingEnabled, onChange:function(v){setA({ratingEnabled:v});} }),
+                            el( 'p', { style:{fontSize:12,color:'#666'} }, 'Ratings update via AJAX when visitors rate. You can manually set an initial value below.' ),
+                            el( TextControl, { label:'Rating value (0-5)', value:String(a.ratingValue), onChange:function(v){setA({ratingValue:parseFloat(v)||0});} }),
+                            el( TextControl, { label:'Rating count',       value:String(a.ratingCount), onChange:function(v){setA({ratingCount:parseInt(v)||0});} })
+                        ) : el( Fragment, null,
+                            el( 'p', { style:{fontSize:13,color:'#d97706',fontWeight:500,margin:'0 0 8px 0'} }, '🔒 Pro Feature' ),
+                            el( 'p', { style:{fontSize:12,color:'#666',margin:0} }, 'Upgrade to OhScoop Pro to unlock interactive AJAX Star Ratings that save to your database.' )
+                        )
                     ),
 
                     // ── Display & SEO Options
@@ -275,7 +281,7 @@
                         el( ToggleControl, { label:'Cook mode button',    checked:a.showCookMode,    onChange:function(v){setA({showCookMode:v});} }),
                         el( 'hr', { style:{margin:'12px 0', borderTop:'1px solid #ddd'} } ),
                         el( ToggleControl, { label:'Inject SEO Meta Tags', checked:a.enableSeoTags!==false, onChange:function(v){setA({enableSeoTags:v});}, help:'Adds og:title, og:image etc. to the head. Turn off if using Yoast/RankMath.' }),
-                        el( ToggleControl, { label:'Pinterest Hover Button', checked:a.enablePinterest!==false, onChange:function(v){setA({enablePinterest:v});}, help:'Shows a "Pin it" button over the recipe image.' }),
+                        isPro ? el( ToggleControl, { label:'Pinterest Hover Button', checked:a.enablePinterest!==false, onChange:function(v){setA({enablePinterest:v});}, help:'Shows a "Pin it" button over the recipe image.' }) : el( 'div', {style:{marginTop:16,paddingTop:12,borderTop:'1px dashed #ddd'}}, el( 'p', { style:{fontSize:13,color:'#d97706',fontWeight:500,margin:0} }, '🔒 Pinterest Buttons (Pro)' ) ),
                     ),
 
                     // ── Colours

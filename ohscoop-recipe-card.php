@@ -33,6 +33,9 @@ function ohscoop_register_block() {
         OHSCOOP_VERSION,
         true
     );
+    wp_localize_script( 'ohscoop-block-editor', 'ohscoopData', [
+        'isPro' => defined('OHSCOOP_PRO_ACTIVE') && OHSCOOP_PRO_ACTIVE,
+    ]);
 
     wp_register_style(
         'ohscoop-editor-style',
@@ -69,10 +72,11 @@ function ohscoop_enqueue_frontend() {
         true
     );
     
-    // Pass AJAX URL and Nonce to frontend JS
+    // Pass AJAX URL, Nonce, and Pro Status to frontend JS
     wp_localize_script( 'ohscoop-frontend', 'ohscoopAjax', [
         'url'   => admin_url( 'admin-ajax.php' ),
         'nonce' => wp_create_nonce( 'ohscoop_rate_nonce' ),
+        'isPro' => defined('OHSCOOP_PRO_ACTIVE') && OHSCOOP_PRO_ACTIVE,
     ]);
 }
 add_action( 'wp_enqueue_scripts', 'ohscoop_enqueue_frontend' );
@@ -392,6 +396,7 @@ function ohscoop_render_block( $a ) {
         <div class="ohscoop-rating-widget">
             <div class="ohscoop-rating-label">Rate this recipe</div>
             <div class="ohscoop-stars-input" data-post="<?php echo $post_id; ?>">
+       <!-- Pro features like ohscoop_handle_rating and Pinterest injection have been moved to ohscoop-recipe-card-pro.php -->
                 <?php for($i=1;$i<=5;$i++): ?>
                 <button class="ohscoop-rate-star" data-value="<?php echo $i; ?>" onclick="ohscoopRate(<?php echo $post_id; ?>,<?php echo $i; ?>)" title="<?php echo $i; ?> star<?php echo $i>1?'s':''; ?>">★</button>
                 <?php endfor; ?>
@@ -417,6 +422,7 @@ function ohscoop_inject_seo_meta() {
     if ( ! is_singular() ) return;
     
     // Prevent output during REST API requests (fixes 'Invalid JSON response' editor error)
+    // Pinterest injection moved to Pro
     if ( defined('REST_REQUEST') && REST_REQUEST ) return;
     if ( defined('DOING_AJAX') && DOING_AJAX ) return;
 
@@ -463,58 +469,4 @@ function ohscoop_inject_seo_meta() {
     echo "<meta property=\"og:type\" content=\"article\" />\n";
     echo "<!-- /OhScoop SEO Meta Tags -->\n\n";
 }
-add_action( 'wp_head', 'ohscoop_inject_seo_meta', 5 );
 
-// ── AJAX Rating Handler ────────────────────────────────────────────
-function ohscoop_handle_rating() {
-    // Check nonce
-    check_ajax_referer( 'ohscoop_rate_nonce', 'nonce' );
-
-    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-    $rating  = isset($_POST['rating']) ? intval($_POST['rating']) : 0;
-
-    if ( ! $post_id || $rating < 1 || $rating > 5 ) {
-        wp_send_json_error( 'Invalid data' );
-    }
-
-    // Get current counts from meta
-    $meta_rating = get_post_meta( $post_id, 'ohscoop_rating_value', true );
-    $meta_count  = get_post_meta( $post_id, 'ohscoop_rating_count', true );
-
-    // If meta doesn't exist yet, we parse the block content to get initial values
-    if ( $meta_rating === '' || $meta_count === '' ) {
-        $post = get_post($post_id);
-        if ( ! $post ) wp_send_json_error( 'Post not found' );
-        
-        $blocks = parse_blocks( $post->post_content );
-        $find_block = function($blocks) use (&$find_block) {
-            foreach ( $blocks as $block ) {
-                if ( 'ohscoop/recipe-card' === $block['blockName'] ) return $block;
-                if ( !empty($block['innerBlocks']) ) { $res = $find_block($block['innerBlocks']); if($res) return $res; }
-            } return null;
-        };
-        $recipe_block = $find_block($blocks);
-        
-        $meta_rating = isset($recipe_block['attrs']['ratingValue']) ? floatval($recipe_block['attrs']['ratingValue']) : 0;
-        $meta_count  = isset($recipe_block['attrs']['ratingCount']) ? intval($recipe_block['attrs']['ratingCount']) : 0;
-    } else {
-        $meta_rating = floatval($meta_rating);
-        $meta_count  = intval($meta_count);
-    }
-
-    // Math: New Average = ((Old Average * Old Count) + New Rating) / (Old Count + 1)
-    $new_count   = $meta_count + 1;
-    $total_score = ($meta_rating * $meta_count) + $rating;
-    $new_avg     = $total_score / $new_count;
-
-    // Save back to meta
-    update_post_meta( $post_id, 'ohscoop_rating_value', $new_avg );
-    update_post_meta( $post_id, 'ohscoop_rating_count', $new_count );
-
-    wp_send_json_success([
-        'new_rating' => number_format($new_avg, 1),
-        'new_count'  => $new_count
-    ]);
-}
-add_action( 'wp_ajax_ohscoop_rate', 'ohscoop_handle_rating' );
-add_action( 'wp_ajax_nopriv_ohscoop_rate', 'ohscoop_handle_rating' );

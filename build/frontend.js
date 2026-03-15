@@ -169,8 +169,8 @@ function ohscoopRate(postId, value) {
         localStorage.setItem(key, value);
     } catch(e) {}
 
-    // POST to WP AJAX
-    if (typeof ohscoopAjax !== 'undefined') {
+    // POST to WP AJAX (Pro Only)
+    if (typeof ohscoopAjax !== 'undefined' && ohscoopAjax.isPro) {
         if (starsEl) starsEl.style.opacity = '0.5'; // loading indicator
         
         // Use URLSearchParams for application/x-www-form-urlencoded
