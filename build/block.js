@@ -153,6 +153,8 @@
             showUnitToggle: { type:'boolean', default:true },
             showPrintButton:{ type:'boolean', default:true },
             showCookMode:   { type:'boolean', default:true },
+            enableSeoTags:  { type:'boolean', default:true },
+            enablePinterest:{ type:'boolean', default:true },
             accentColor:    { type:'string',  default:'#7c3aed' },
             headerGradient: { type:'string',  default:'linear-gradient(135deg,#2d1052 0%,#1a3a1a 100%)' },
         },
@@ -266,11 +268,14 @@
                         el( TextControl, { label:'Rating count',       value:String(a.ratingCount), onChange:function(v){setA({ratingCount:parseInt(v)||0});} }),
                     ),
 
-                    // ── Display options
-                    el( PanelBody, { title:'🎛️ Display Options', initialOpen:false },
+                    // ── Display & SEO Options
+                    el( PanelBody, { title:'🎛️ Display & SEO', initialOpen:false },
                         el( ToggleControl, { label:'US / Metric toggle', checked:a.showUnitToggle,  onChange:function(v){setA({showUnitToggle:v});} }),
                         el( ToggleControl, { label:'Print button',        checked:a.showPrintButton, onChange:function(v){setA({showPrintButton:v});} }),
                         el( ToggleControl, { label:'Cook mode button',    checked:a.showCookMode,    onChange:function(v){setA({showCookMode:v});} }),
+                        el( 'hr', { style:{margin:'12px 0', borderTop:'1px solid #ddd'} } ),
+                        el( ToggleControl, { label:'Inject SEO Meta Tags', checked:a.enableSeoTags!==false, onChange:function(v){setA({enableSeoTags:v});}, help:'Adds og:title, og:image etc. to the head. Turn off if using Yoast/RankMath.' }),
+                        el( ToggleControl, { label:'Pinterest Hover Button', checked:a.enablePinterest!==false, onChange:function(v){setA({enablePinterest:v});}, help:'Shows a "Pin it" button over the recipe image.' }),
                     ),
 
                     // ── Colours

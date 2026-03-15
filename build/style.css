@@ -53,12 +53,22 @@
 
 /* ── Header ──────────────────────────────────────────────────────── */
 .ohscoop-header { position:relative; overflow:hidden; }
+.ohscoop-header-img-wrap { position:absolute; inset:0; z-index:0; }
 .ohscoop-header-img {
     position:absolute; inset:0;
     background-size:cover; background-position:center;
     opacity:0.25;
 }
-.ohscoop-header-content { position:relative; padding:28px 32px 24px; }
+.ohscoop-pin-btn {
+    position:absolute; top:16px; right:16px; z-index:10;
+    background:#e60023; color:#fff; padding:6px 12px; border-radius:24px;
+    font-size:13px; font-weight:600; text-decoration:none;
+    display:flex; align-items:center; gap:6px;
+    opacity:0; transform:translateY(-10px); transition:all 0.2s ease;
+}
+.ohscoop-header:hover .ohscoop-pin-btn { opacity:1; transform:translateY(0); }
+.ohscoop-pin-btn:hover { background:#bd081c; color:#fff; }
+.ohscoop-header-content { position:relative; padding:28px 32px 24px; z-index:1; }
 .ohscoop-header-meta { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
 .ohscoop-label { font-size:11px; letter-spacing:0.09em; text-transform:uppercase; color:rgba(255,255,255,0.6); }
 .ohscoop-machine-pill { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:3px 10px; font-size:11px; color:#fff; }

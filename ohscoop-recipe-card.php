@@ -3,7 +3,7 @@
  * Plugin Name:       OhScoop — Recipe Card Block
  * Plugin URI:        https://cybertrickz.info/ohscoop
  * Description:       A beautiful Gutenberg recipe card block for frozen desserts and any recipe type. Includes Schema markup, star ratings, adjustable servings, US/Metric toggle, print mode, cook mode, affiliate links, and more.
- * Version:           2.1.0
+ * Version:           2.2.0
  * Author:            cybertrickz
  * Author URI:        https://cybertrickz.info
  * License:           GPL-2.0-or-later
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OHSCOOP_VERSION', '2.1.0' );
+define( 'OHSCOOP_VERSION', '2.2.0' );
 define( 'OHSCOOP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OHSCOOP_URL', plugin_dir_url( __FILE__ ) );
 
@@ -131,6 +131,8 @@ function ohscoop_get_attributes() {
         'showUnitToggle'    => [ 'type' => 'boolean', 'default' => true ],
         'showPrintButton'   => [ 'type' => 'boolean', 'default' => true ],
         'showCookMode'      => [ 'type' => 'boolean', 'default' => true ],
+        'enableSeoTags'     => [ 'type' => 'boolean', 'default' => true ],
+        'enablePinterest'   => [ 'type' => 'boolean', 'default' => true ],
         'accentColor'       => [ 'type' => 'string',  'default' => '#7c3aed' ],
         'headerGradient'    => [ 'type' => 'string',  'default' => 'linear-gradient(135deg, #2d1052 0%, #1a3a1a 100%)' ],
     ];
@@ -186,7 +188,17 @@ function ohscoop_render_block( $a ) {
         <?php // ── Header ───────────────────────────────────────── ?>
         <div class="ohscoop-header" style="background:<?php echo $gradient; ?>">
             <?php if ( $img ) : ?>
-            <div class="ohscoop-header-img" style="background-image:url('<?php echo $img; ?>')"></div>
+            <div class="ohscoop-header-img-wrap">
+                <div class="ohscoop-header-img" style="background-image:url('<?php echo $img; ?>')"></div>
+                <?php if ( !isset($a['enablePinterest']) || $a['enablePinterest'] !== false ) : 
+                    $pin_desc = esc_attr( $a['title'] . ( !empty($a['description']) ? ' - ' . $a['description'] : '' ) );
+                    $pin_url = esc_url( get_permalink($post_id) );
+                ?>
+                <a href="https://pinterest.com/pin/create/button/?url=<?php echo urlencode($pin_url); ?>&media=<?php echo urlencode($img); ?>&description=<?php echo urlencode($pin_desc); ?>" target="_blank" rel="nofollow noopener" class="ohscoop-pin-btn" data-pin-do="buttonPin" data-pin-custom="true" title="Save to Pinterest">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 0A12 12 0 0 0 .5 16.4c0-1-.1-2.4.2-3.4.3-1.3 2-8.5 2-8.5s-.5 1-0 2.6c0 2.4 1.4 4.3 3.1 4.3 1.5 0 2.7-1.3 2.7-2.9 0-1.6-1-2.4-2.3-2.4-1.1 0-2 1-2 2.3 0 .8.3 1.7.7 2.1l-.3 1c-.8-2-1.1-4-.1-5.6 1.4-2.1 4.5-2.6 6.8-1.5 2 1 3.2 3.4 2.8 5.7-.5 2.8-2.6 4.9-5.1 4.9-1.3 0-2.5-1-2.9-2l-.8 3c-.3 1-.9 2.1-1.4 2.9A12 12 0 1 0 12 0z"/></svg> Save
+                </a>
+                <?php endif; ?>
+            </div>
             <?php endif; ?>
             <div class="ohscoop-header-content">
                 <div class="ohscoop-header-meta">
@@ -388,3 +400,51 @@ function ohscoop_render_block( $a ) {
     <?php
     return ob_get_clean();
 }
+
+// ── SEO Meta Injection ─────────────────────────────────────────────
+function ohscoop_inject_seo_meta() {
+    if ( ! is_singular() ) return;
+    $post = get_post();
+    if ( ! has_block( 'ohscoop/recipe-card', $post->post_content ) ) return;
+
+    // Parse blocks to find recipe card attributes
+    $blocks = parse_blocks( $post->post_content );
+    
+    // Recursive search for nested blocks
+    $find_block = function($blocks) use (&$find_block) {
+        foreach ( $blocks as $block ) {
+            if ( 'ohscoop/recipe-card' === $block['blockName'] ) return $block;
+            if ( !empty($block['innerBlocks']) ) {
+                $res = $find_block($block['innerBlocks']);
+                if ( $res ) return $res;
+            }
+        }
+        return null;
+    };
+    
+    $recipe_block = $find_block($blocks);
+    if ( ! $recipe_block ) return;
+
+    $a = $recipe_block['attrs'];
+    if ( isset($a['enableSeoTags']) && $a['enableSeoTags'] === false ) return;
+
+    // Output Open Graph tags
+    $title = esc_attr( $a['title'] ?? get_the_title() );
+    $desc = esc_attr( $a['description'] ?? '' );
+    $img = esc_url( $a['recipeImage'] ?? get_the_post_thumbnail_url($post->ID, 'full') );
+    $url = esc_url( get_permalink() );
+
+    echo "\n<!-- OhScoop SEO Meta Tags -->\n";
+    echo "<meta property=\"og:title\" content=\"{$title}\" />\n";
+    if ( $desc ) {
+        echo "<meta property=\"og:description\" content=\"{$desc}\" />\n";
+        echo "<meta name=\"description\" content=\"{$desc}\" />\n";
+    }
+    if ( $img ) {
+        echo "<meta property=\"og:image\" content=\"{$img}\" />\n";
+    }
+    echo "<meta property=\"og:url\" content=\"{$url}\" />\n";
+    echo "<meta property=\"og:type\" content=\"article\" />\n";
+    echo "<!-- /OhScoop SEO Meta Tags -->\n\n";
+}
+add_action( 'wp_head', 'ohscoop_inject_seo_meta', 5 );
