@@ -3,7 +3,7 @@
  * Plugin Name:       OhScoop — Recipe Card Block
  * Plugin URI:        https://cybertrickz.info/ohscoop
  * Description:       A beautiful Gutenberg recipe card block for frozen desserts and any recipe type. Includes Schema markup, star ratings, adjustable servings, US/Metric toggle, print mode, cook mode, affiliate links, and more.
- * Version:           2.2.0
+ * Version:           2.2.1
  * Author:            cybertrickz
  * Author URI:        https://cybertrickz.info
  * License:           GPL-2.0-or-later
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OHSCOOP_VERSION', '2.2.0' );
+define( 'OHSCOOP_VERSION', '2.2.1' );
 define( 'OHSCOOP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OHSCOOP_URL', plugin_dir_url( __FILE__ ) );
 
