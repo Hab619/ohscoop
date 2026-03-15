@@ -147,7 +147,7 @@
 /* ── Star rating widget ──────────────────────────────────────────── */
 .ohscoop-rating-widget { padding:16px 24px; border-top:1px solid var(--ohscoop-light); text-align:center; }
 .ohscoop-rating-label  { font-size:13px; color:var(--ohscoop-muted); margin-bottom:8px; }
-.ohscoop-stars-input   { display:flex; justify-content:center; gap:4px; }
+.ohscoop-stars-input   { display:flex; justify-content:center; gap:4px; transition: opacity 0.2s ease; }
 .ohscoop-rate-star     { font-size:28px; background:none; border:none; cursor:pointer; color:#d1d5db; transition:all 0.1s; line-height:1; padding:0 2px; }
 .ohscoop-rate-star:hover, .ohscoop-rate-star.hover, .ohscoop-rate-star.active { color:#fbbf24; transform:scale(1.15); }
 .ohscoop-rating-thanks { font-size:13px; color:#059669; margin-top:8px; font-weight:500; }

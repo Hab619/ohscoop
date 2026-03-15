@@ -169,15 +169,55 @@ function ohscoopRate(postId, value) {
         localStorage.setItem(key, value);
     } catch(e) {}
 
-    // Optional: POST to WP AJAX
+    // POST to WP AJAX
     if (typeof ohscoopAjax !== 'undefined') {
+        if (starsEl) starsEl.style.opacity = '0.5'; // loading indicator
+        
+        // Use URLSearchParams for application/x-www-form-urlencoded
+        var params = new URLSearchParams();
+        params.append('action', 'ohscoop_rate');
+        params.append('nonce', ohscoopAjax.nonce);
+        params.append('post_id', postId);
+        params.append('rating', value);
+
         fetch(ohscoopAjax.url, {
             method: 'POST',
-            headers: {'Content-Type':'application/x-www-form-urlencoded'},
-            body: 'action=ohscoop_rate&nonce=' + ohscoopAjax.nonce + '&post_id=' + postId + '&rating=' + value
+            body: params
         })
-        .then(function(r){ return r.json(); })
-        .catch(function(){});
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (starsEl) starsEl.style.opacity = '1';
+            
+            if (res.success && res.data) {
+                // Update aggregate display if it exists nearby
+                var wrap = document.getElementById('ohscoop-' + postId);
+                if (wrap) {
+                    var displayStars = wrap.querySelector('.ohscoop-stars-display');
+                    var rv = wrap.querySelector('.ohscoop-rv');
+                    var rc = wrap.querySelector('.ohscoop-rc');
+                    
+                    if (rv && rc) {
+                        rv.textContent = res.data.new_rating;
+                        rc.textContent = res.data.new_count;
+                    }
+
+                    if (displayStars) {
+                        // Update the star-filled / star-empty classes
+                        var rounded = Math.round(parseFloat(res.data.new_rating));
+                        var displayStarSpans = displayStars.querySelectorAll('.ohscoop-star');
+                        displayStarSpans.forEach(function(s, i) {
+                            s.classList.toggle('star-filled', i < rounded);
+                            s.classList.toggle('star-empty', i >= rounded);
+                        });
+                        displayStars.title = res.data.new_rating + '/5 from ' + res.data.new_count + ' ratings';
+                    }
+                }
+            }
+        })
+        .catch(function(e) {
+            if (starsEl) starsEl.style.opacity = '1';
+            console.error('OhScoop Rating Error:', e);
+        });
     }
 }
 
