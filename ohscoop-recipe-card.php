@@ -404,6 +404,11 @@ function ohscoop_render_block( $a ) {
 // ── SEO Meta Injection ─────────────────────────────────────────────
 function ohscoop_inject_seo_meta() {
     if ( ! is_singular() ) return;
+    
+    // Prevent output during REST API requests (fixes 'Invalid JSON response' editor error)
+    if ( defined('REST_REQUEST') && REST_REQUEST ) return;
+    if ( defined('DOING_AJAX') && DOING_AJAX ) return;
+
     $post = get_post();
     if ( ! has_block( 'ohscoop/recipe-card', $post->post_content ) ) return;
 
