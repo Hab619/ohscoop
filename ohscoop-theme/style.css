@@ -1,0 +1,29 @@
+/*
+Theme Name: OhScoop Official Theme
+Theme URI: https://ohscoop.com
+Author: cybertrickz
+Description: Custom Full Site Editing (FSE) block theme designed exclusively for OhScoop.com.
+Version: 1.0.0
+License: GPL-2.0-or-later
+*/
+
+/* Global resets specifically for the custom blocks are handled by theme.json.
+   Add raw CSS here only if strictly necessary. */
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom animated gradient background for the Hero section */
+.ohscoop-hero-gradient {
+    background: linear-gradient(-45deg, #4c1d95, #6d28d9, #1e1b4b, #312e81);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
